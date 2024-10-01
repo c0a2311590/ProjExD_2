@@ -34,18 +34,45 @@ def game_over(screen:pg.Surface) -> None:
     戻り値:なし
     画面を暗くしてゲームオーバーを表示
     """
-    t_img = pg.Surface((WIDTH,HEIGHT))
-    pg.draw.rect(t_img,(0,0,0),pg.Rect(0,0,WIDTH,HEIGHT))
-    t_img.set_alpha(128)
+    t_img = pg.Surface((WIDTH,HEIGHT))#サーフェイスを用意する
+    pg.draw.rect(t_img,(0,0,0),pg.Rect(0,0,WIDTH,HEIGHT))#黒い四角を用意
+    t_img.set_alpha(128)#半透明にする
     screen.blit(t_img,(0,0))
     fonto = pg.font.Font(None, 80)
     txt = fonto.render("Game Over",True,(255,255,255))
-    screen.blit(txt,(WIDTH/2-125,HEIGHT/2))
+    screen.blit(txt,(WIDTH/2-125,HEIGHT/2))#GameOverを表示
     bg_img = pg.image.load("fig/8.png")
     for i in range(2):
-        screen.blit(bg_img,(WIDTH/2 - 250 + 500*i,HEIGHT/2))
-    pg.display.update()
+        screen.blit(bg_img,(WIDTH/2 - 250 + 500*i,HEIGHT/2))#こうかとんを表示
+    pg.display.update()#画面をアップデート
     time.sleep(5)
+
+
+def time_bom(tmr: int,vx: int,vy:int) -> tuple[int,int,pg.Surface]:
+    """
+    引数:タイマー、vx、vy
+    戻り値：　vx,vy,bb_img
+    速度と大きさの制御
+    """
+    for r in range(1, 11):
+        if tmr//500 + 1< r:
+            break
+        bb_img = pg.Surface((20*r, 20*r))
+        bb_img.set_colorkey((0,0,0))#爆弾の四隅を透過させる
+        pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
+    if tmr%500 ==0:
+        i =vx//5
+        avx = vx*(i+1)
+        avy = vy*(i+1)
+        if avx > 50:#制限速度を付ける
+            avx = 50
+            avy = 50
+    else:
+        avx = vx
+        avy = vy
+    return avx,avy,bb_img
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -80,7 +107,7 @@ def main():
         #     sum_mv[0] -= 5
         # if key_lst[pg.K_RIGHT]:
         #     sum_mv[0] += 5
-
+        vx,vy,bb_img= time_bom(tmr,vx,vy)
         for key, tpl in DELTA.items():
             if key_lst[key]:
                 sum_mv[0] += tpl[0]#横方向
@@ -89,7 +116,7 @@ def main():
         if check_bound(kk_rct) != (True, True):
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(kk_img, kk_rct)
-
+        
         bb_rct.move_ip((vx,vy))
         side ,vertical = check_bound(bb_rct)
         if not side:
