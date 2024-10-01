@@ -13,6 +13,20 @@ DELTA = {pg.K_UP: (0,-5),
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
+def check_bound(obj_rct:pg.Rect) -> tuple[bool, bool]:
+    """
+    引数:こうかとん,または,爆弾のRect
+    戻り値:真理値タプル(横判定結果,縦判定結果)
+    画面内ならTure,画面外ならFalse
+    """
+    side ,vertical = True,True
+    if obj_rct.left < 0 or WIDTH< obj_rct.right:
+        side = False
+    if obj_rct.top < 0 or HEIGHT < obj_rct.bottom:
+        vertical = False
+    return side,vertical
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -47,11 +61,19 @@ def main():
 
         for key, tpl in DELTA.items():
             if key_lst[key]:
-                sum_mv[0] += tpl[0]
-                sum_mv[1] += tpl[1]
+                sum_mv[0] += tpl[0]#横方向
+                sum_mv[1] += tpl[1]#縦方向
         kk_rct.move_ip(sum_mv)
+        if check_bound(kk_rct) != (True, True):
+            kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(kk_img, kk_rct)
+
         bb_rct.move_ip((vx,vy))
+        side ,vertical = check_bound(bb_rct)
+        if not side:
+            vx *= -1
+        if not vertical:
+            vy *= -1
         screen.blit(bb_img,bb_rct)
         pg.display.update()
         tmr += 1
